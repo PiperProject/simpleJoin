@@ -6,7 +6,8 @@ import os, sys
 # import sibling packages HERE!!!
 adaptersPath  = os.path.abspath( __file__ + "/../../../../adapters" )
 sys.path.append( adaptersPath )
-from adapters import Adapter
+#from adapters import Adapter
+import Adapter
 
 # settings dir
 settingsPath  = os.path.abspath( __file__ + "/../../core" )
@@ -37,22 +38,28 @@ def simpleJoin( cursor, idLists, joinAttr, pred ) :
   ad = Adapter.Adapter( NOSQL_TYPE )
 
   # assume all ids in db are unique
+  # ids per joinAttr
   idDict = {}
   for currList in idLists :
-    for currID in l :
+    for currID in currList :
       res1   = ad.get( currID, cursor )
-      atddtVal = res1[ joinAttr ]
+      attVal = res1[ joinAttr ]
       idDict[ currID ] = attVal
+
+  if DEBUG :
+    print "idDict = " + str(idDict)
 
   # get ids with identical joinAttr
   targetIDs = []
-  for d1 in idDict :
-    newkey = idDict[ d1 ]
-    targetIDs.append( d1 )
-    for d2 in idDict :
-      if not d1 == d2 :
-        if idDict[d2] == newKey :
-          targetIDs.append( d2 )
+  for k1 in idDict :
+    att = idDict[ k1 ]
+    for k2 in idDict :
+      if not k1 == k2 :
+        if idDict[k2] == att :
+          targetIDs.append( k2 )
+
+  if DEBUG :
+    print "targetIDs = " + str(targetIDs)
 
   # grab all vals per joined id
   currResDictList = []
@@ -60,4 +67,4 @@ def simpleJoin( cursor, idLists, joinAttr, pred ) :
     res = ad.get( i, cursor )
     currResDictList.append( res )
 
-  return currResDict
+  return currResDictList
