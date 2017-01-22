@@ -18,8 +18,6 @@ import settings
 
 
 DEBUG      = settings.DEBUG
-NOSQL_TYPE = settings.NOSQL_TYPE
-
 
 ################
 #  DICT MERGE  #
@@ -33,9 +31,9 @@ def dictMerge( a, b ) :
 #################
 #  SIMPLE JOIN  #
 #################
-def simpleJoin( cursor, idLists, joinAttr, pred ) :
+def simpleJoin( nosql_type, cursor, idLists, joinAttr, pred ) :
 
-  ad = Adapter.Adapter( NOSQL_TYPE )
+  ad = Adapter.Adapter( nosql_type )
 
   # assume all ids in db are unique
   # ids per joinAttr
