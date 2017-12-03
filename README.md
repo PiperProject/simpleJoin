@@ -1,2 +1,2 @@
-:# simpleJoin
+# simplejoin
 A simple join implementation.
