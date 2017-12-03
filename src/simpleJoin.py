@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # -------------------------------------- #
-import os, sys
+import logging, os, sys
 
 # import sibling packages HERE!!!
 adaptersPath  = os.path.abspath( __file__ + "/../../../../adapters" )
@@ -19,50 +19,76 @@ import settings
 
 DEBUG      = settings.DEBUG
 
-################
-#  DICT MERGE  #
-################
-def dictMerge( a, b ) :
-  c = a.copy()
-  c = c.update(b)
-  return c
+class SimpleJoin( object ) :
+
+  ################
+  #  ATTRIBUTES  #
+  ################
+  nosql_type = None   # the type of nosql database under consideration
+  cursor     = None   # pointer to target database instance
 
 
-#################
-#  SIMPLE JOIN  #
-#################
-def simpleJoin( nosql_type, cursor, idLists, joinAttr, pred ) :
+  ##########
+  #  INIT  #
+  ##########
+  def __init__( self, nosql_type, cursor ) :
+    self.cursor     = cursor
+    self.nosql_type = nosql_type
 
-  ad = Adapter.Adapter( nosql_type )
 
-  # assume all ids in db are unique
-  # ids per joinAttr
-  idDict = {}
-  for currList in idLists :
-    for currID in currList :
-      res1   = ad.get( currID, cursor )
-      attVal = res1[ joinAttr ]
-      idDict[ currID ] = attVal
+  #################
+  #  SIMPLE JOIN  #
+  #################
+  def simplejoin( self, idLists, joinAttr, pred ) :
+  
+    logging.debug( "  SIMPLEJOIN : idLists  = " + str( idLists ) )
+    logging.debug( "  SIMPLEJOIN : joinAttr = " + str( joinAttr ) )
+    logging.debug( "  SIMPLEJOIN : pred     = " + str( pred ) )
 
-  if DEBUG :
-    print "idDict = " + str(idDict)
+    ad = Adapter.Adapter( self.nosql_type )
+  
+    # assume all ids in db are unique
+    # ids per joinAttr
+    idDict = {}
+    for currList in idLists :
+      for currID in currList :
+        res1   = ad.get( currID, self.cursor )
+        attVal = res1[ joinAttr ]
+        idDict[ currID ] = attVal
 
-  # get ids with identical joinAttr
-  targetIDs = []
-  for k1 in idDict :
-    att = idDict[ k1 ]
-    for k2 in idDict :
-      if not k1 == k2 :
-        if idDict[k2] == att :
-          targetIDs.append( k2 )
+    logging.debug( "  SIMPLEJOIN : idDict = " + str( idDict ) )
+  
+    # get ids with identical joinAttr
+    targetIDs = []
+    for k1 in idDict :
+      att = idDict[ k1 ]
+      for k2 in idDict :
+        if not k1 == k2 :
+          if idDict[k2] == att :
+            targetIDs.append( k2 )
+  
+    logging.debug( "  SIMPLEJOIN : targetIDs = " + str( targetIDs ) )
 
-  if DEBUG :
-    print "targetIDs = " + str(targetIDs)
+    # grab all vals per joined id
+    currResDictList = []
+    for i in targetIDs :
+      res = ad.get( i, self.cursor )
+      currResDictList.append( res )
 
-  # grab all vals per joined id
-  currResDictList = []
-  for i in targetIDs :
-    res = ad.get( i, cursor )
-    currResDictList.append( res )
+    logging.debug( "  SIMPLEJOIN : currResDictList = " + str( currResDictList ) )
 
-  return currResDictList
+    return currResDictList
+
+
+  ################
+  #  DICT MERGE  #
+  ################
+  def dictMerge( a, b ) :
+    c = a.copy()
+    c = c.update(b)
+    return c
+  
+
+#########
+#  EOF  #
+#########
